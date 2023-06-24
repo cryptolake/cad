@@ -1,0 +1,13 @@
+Objective: Generate an engaging facebook ad description
+
+Variables: product_name, product_description, product_link, max_number_of_words
+
+Parameters: include a variety of emojis, utilize common marketing strategies
+
+input:
+product_name: Tricks jump
+product_description: Tricks jump is a chocolate for everyone, it's playful and tastes like it sounds
+product_link: tricks.com
+max_number_of_words: 150
+
+output: 

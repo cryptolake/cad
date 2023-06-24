@@ -1,0 +1,29 @@
+services:
+
+  app:
+    build:
+      context: .
+    volumes:
+      - staticbuild:/app/out
+    ports:
+      - "8000:8000"
+      - "3001:3000"
+    networks:
+      - dev
+
+      # nginx:
+      #   build:
+      #     context: ./nginx
+      #   volumes:
+      #     - staticbuild:/app/public
+      #   ports:
+      #     - “8080:80”
+      #   networks:
+      #     - dev
+
+networks:
+  dev:
+    driver: bridge
+
+volumes:
+  staticbuild:

@@ -1,0 +1,12 @@
+06/22/2023: 3:20 hours
+- chose technologies: nextjs, fastapi, openai, pinecone and setup accounts
+- Created diagram and skeleton of project
+- created docker environment
+- Have a working application
+- Start playing with openai api and discover ways for prompt engineering and managing
+
+06/23/2023: 3:30 hours
+- Tested many prompts to create the best so far to create ads
+- Created logic behind ad creation: used best code practices and created custom class for ads
+- Integrated openai API 
+- The system is capable of dynamic ad creation using structured prompting
