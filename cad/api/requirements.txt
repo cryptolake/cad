@@ -1,0 +1,5 @@
+fastapi==0.95.2
+uvicorn[standard]
+sqlalchemy=2.0.17
+openai=0.27.8
+python-dotenv
