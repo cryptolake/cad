@@ -44,5 +44,7 @@ def generate_ad(name, description, link,
         print(e)
         return None
     else:
-        return response.get('choices')
+        ads = [{"text": ad.get('text')} for ad in response['choices']]
+
+        return ads
 

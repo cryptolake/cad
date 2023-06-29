@@ -1,3 +1,3 @@
 #!/usr/bin/env python3
 
-from .models import Prompts, Ads
+from .models import Prompt, Ad

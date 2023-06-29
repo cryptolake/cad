@@ -10,3 +10,15 @@
 - Created logic behind ad creation: used best code practices and created custom class for ads
 - Integrated openai API 
 - The system is capable of dynamic ad creation using structured prompting
+
+06/28/2023: 3:10 hours
+- Created working api endpoints
+- Created database models pompts and ads)
+- Started on creating logic of saving each prompt and the generated ads
+- Reorganized code
+
+
+06/29/2023: 3:20 hours
+- Finished api endpoints for creating and viewing prompts and ads
+- Finished Database models and schemas for prompts and ads
+- logic for saving each prompt and ads is complete
