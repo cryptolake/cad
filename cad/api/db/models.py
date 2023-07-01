@@ -11,10 +11,12 @@ class Prompt(Base):
     __tablename__ = "prompts"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(), nullable=False) 
-    description: Mapped[str] = mapped_column(String(), nullable=False)
+
+    brand_name: Mapped[str] = mapped_column(String(), nullable=False) 
+    product_name: Mapped[str] = mapped_column(String(), nullable=True) 
+    product_description: Mapped[str] = mapped_column(String(), nullable=False)
     parameters: Mapped[str] = mapped_column(String(), nullable=True)
-    link: Mapped[str] = mapped_column(String(), nullable=True)
+
     n: Mapped[int] = mapped_column(Integer(), nullable=False)
     temp: Mapped[float] = mapped_column(Float(), default=1.0)
     max_words: Mapped[int] = mapped_column(Integer(), nullable=False)
@@ -25,6 +27,10 @@ class Ad(Base):
     __tablename__ = "ads"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+
     text: Mapped[str] = mapped_column(String(), nullable=False) 
+    headline: Mapped[str] = mapped_column(String(), nullable=False) 
+    short_text: Mapped[str] = mapped_column(String(), nullable=False) 
+
     prompt_id: Mapped[int] = mapped_column(ForeignKey("prompts.id"))
     prompt: Mapped["Prompt"] = relationship(back_populates="ads")

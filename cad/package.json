@@ -3,7 +3,6 @@
     "version": "0.1.0",
     "private": true,
     "scripts": {
-	"install": "concurrently \"npm install\" \"pip install -r api/requirements.txt\"",
 	"fastapi-dev": "python3 -m uvicorn api.main:app --reload",
 	"next-dev": "next dev",
 	"dev": "concurrently \"npm run next-dev\" \"npm run fastapi-dev\"",

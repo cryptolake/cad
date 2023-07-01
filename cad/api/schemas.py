@@ -3,7 +3,9 @@ from pydantic import BaseModel
 
 class AdBase(BaseModel):
     text: str
-    # images: bytes
+    short_text: str
+    headline: str
+    # image: bytes
 
 class Ad(AdBase):
     id: int
@@ -14,10 +16,10 @@ class Ad(AdBase):
 
 
 class PromptBase(BaseModel):
-    name: str
-    description: str
+    brand_name: str
+    product_name: str | None = None
+    product_description: str
     parameters: str
-    link: str | None = None
     n: int
     temp: float | None = None
     max_words: int

@@ -22,3 +22,9 @@
 - Finished api endpoints for creating and viewing prompts and ads
 - Finished Database models and schemas for prompts and ads
 - logic for saving each prompt and ads is complete
+
+06/30/2023: 2:40 hours
+- More prompt engineering
+- Add more structure to the api (brand_name, product_name, product_description)
+- Utilities for cleaning and managing generated text
+- Start UI work
