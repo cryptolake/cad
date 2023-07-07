@@ -17,7 +17,7 @@ def get_db():
     finally:
         db.close()
 
-@app.post("/api/ads/", response_model=list[schemas.Ad])
+@app.post("/api/ads", response_model=list[schemas.Ad])
 def create_ad(prompt: schemas.PromptBase, db: Session = Depends(get_db)):
     db_prompt = crud.create_prompt(db=db, prompt=prompt)
     ads = gen_ai.generate_ad(**prompt.dict())
@@ -28,7 +28,7 @@ def create_ad(prompt: schemas.PromptBase, db: Session = Depends(get_db)):
                                      prompt_id=db_prompt.id) for ad in ads]
     return db_ads
 
-@app.get("/api/ads/", response_model=list[schemas.Ad])
+@app.get("/api/ads", response_model=list[schemas.Ad])
 def get_ads(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     ads = crud.get_ads(db=db, skip=skip, limit=limit)
     return ads
@@ -42,7 +42,7 @@ def get_ad(ad_id: int, db: Session = Depends(get_db)):
                             detail="Ad not found")
     return ad
 
-@app.get("/api/prompts/", response_model=list[schemas.Prompt])
+@app.get("/api/prompts", response_model=list[schemas.Prompt])
 def get_prompts(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     prompts = crud.get_prompts(db=db, skip=skip, limit=limit)
     return prompts

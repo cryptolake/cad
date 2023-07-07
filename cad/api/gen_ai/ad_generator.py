@@ -22,7 +22,7 @@ input variables:
 
 output variables:
     ad_headline: This is the ad headline in the ad image, this should be very short
-    ad_short_text: This is the ad text in the ad image below the headline 
+    ad_short_text: This is the the call to action in the ad image below the headline 
     ad_text: This is the text that is going to be in the post
 
 output format:
