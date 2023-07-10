@@ -2,65 +2,8 @@
 
 import React from 'react';
 import './globals.css'
-import { TextInput, TextArea, NumberInput } from './components/input';
+import { AdList, PromptList, Form } from './components/ad.jsx'
 import { useState, Suspense } from 'react';
-
-async function AdList({ adList }) {
-
-    return (
-    <>
-	<ul className="overflow-y-auto h-1/2 p-6 divide-y divide-slate-200">
-	    {adList.map(ad => (
-	    <li key={ad.id} className="m-6 p-3 rounded shadow-lg ml-3 overflow-hidden">
-		<div className="flex flex-col">
-		    <h2 className="font-bold">Headline:</h2>
-		    <p className="">{ad.headline}</p>
-		</div>
-		<div className="flex flex-col">
-		    <h2 className="font-bold">Short Text:</h2>
-		    <p className="">{ad.short_text}</p>
-		</div>
-		<div className="flex flex-col">
-		    <h2 className="font-bold">Text:</h2>
-		    <p className="">{ad.text}</p>
-		</div>
-	    </li>
-	    ))}
-	</ul>
-    </>
-    );
-
-}
-
-function Form({submitFun}) {
-
-    return (
-	<form className="w-full max-w-lg" onSubmit={submitFun}>
-	    <div className="flex flex-row -mx-3 mb-6">
-		<TextInput label="Brand Name" name="brand_name" placeholder=""/>
-		<TextInput label="Product Name" name="product_name" placeholder=""/>
-	    </div>
-
-	    <div className="flex flex-col  mb-6">
-		<TextArea label="Product Description" name="product_description" placeholder="" />
-		<TextArea label="Parameters" name="parameters" placeholder="" />
-	    </div>
-
-	    <div className="flex flex-row -mx-3 mb-6">
-		<NumberInput label="Number of Generations" name="n" placeholder="" value='10' step='1' />
-		<NumberInput label="Temperature (model randomness)" name="temp" placeholder="" value='1.0' step='0.1'/>
-	    </div>
-	    <div className="flex items-center m-8">
-		<NumberInput label="Max tokens" name="max_words" placeholder="" value='40' step='1'/>
-	    </div>
-
-	 <div className="flex flex-col items-center m-8">
-	    <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" type="submit">Generate</button>
-	 </div>
-	</form>
-    );
-
-}
 
 function AdGenerator() {
     const [isDataFetching, setDataFetching] = useState(false);
@@ -113,15 +56,34 @@ function AdGenerator() {
 
 }
 
-export default function Page() {
+async function getPrompts() {
+    const res = await fetch("/api/prompts", {
+	method: "GET",
+    });
+
+    if (!res.ok) {
+	throw new Error('Failed to fetch prompts');
+
+    }
+
+    return res.json();
+} 
+
+export default async function Page() {
+    const promptsData = await getPrompts()
+
     return (
-	<div className="p-1 flex flex-col items-center">
-	    <div className="border-2 rounded-md border-sky-400 p-0 m-20 shadow-xl">
-		<a href='/'><h1 className="text-3xl m-3 m-0 font-bold">AD GENERATOR</h1></a>
+	<div className="flex flex-row">
+	    <div className="basis-1/6">
+		<Suspense fallback={<div>Loading...</div>}>
+		    <PromptList promptList={promptsData} />
+		</Suspense>
 	    </div>
-	    <Suspense fallback={<div>Loading...</div>}>
-		<AdGenerator />
-	    </Suspense>
+	    <div className="basis-4/5 p-1 flex flex-col items-center">
+		<Suspense fallback={<div>Loading...</div>}>
+		    <AdGenerator />
+		</Suspense>
+	    </div>
 	</div>
     );
 }
