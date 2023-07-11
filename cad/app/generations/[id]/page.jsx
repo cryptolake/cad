@@ -2,6 +2,7 @@
 
 import React, { Suspense } from 'react';
 import { AdList, Prompt } from '../../components/ad.jsx';
+import { Title } from '../../components/title.jsx'
 
 async function fetchPrompt(id) {
     const res = await fetch(`/api/prompts/${id}`, {
@@ -21,12 +22,15 @@ export default async function Page({ params }) {
     console.log(await prompt.ads)
 
     return (
-	<Suspense>
-	    <div>
-		<Prompt prompt={await prompt} />
-		<AdList className="overflow-y-scroll" adList={await prompt.ads} />
-	    </div>
-	</Suspense>
+	<>
+	    <Title className="mb-10" title='Ad Generator' />
+	    <Suspense fallback={<div>Loading...</div>}>
+		<div>
+		    <Prompt prompt={await prompt} />
+		    <AdList  adList={await prompt.ads} />
+		</div>
+	    </Suspense>
+	</>
 
     );
 }

@@ -2,6 +2,7 @@
 
 \#*
 *.db
+static/*
 
 ## Python ignore
 

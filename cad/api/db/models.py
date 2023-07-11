@@ -1,11 +1,16 @@
 from __future__ import annotations
 from typing import List
+import dataclasses
 
 from sqlalchemy import String, ForeignKey, Integer, Float
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, composite
 
 from .database import Base
 
+@dataclasses.dataclass
+class Loc:
+    x: int
+    y: int
 
 class Prompt(Base):
     __tablename__ = "prompts"
@@ -34,3 +39,20 @@ class Ad(Base):
 
     prompt_id: Mapped[int] = mapped_column(ForeignKey("prompts.id"))
     prompt: Mapped["Prompt"] = relationship(back_populates="ads")
+
+class Image(Base):
+    __tablename__ = "images"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    location: Mapped[str] = mapped_column(String(), nullable=False) 
+    size: Mapped[int] = mapped_column(Integer(), nullable=False)
+
+class Theme(Base):
+    __tablename__ = "themes"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    headline_loc: Mapped[Loc] = composite(mapped_column("x"), mapped_column("y"))
+    headline_size: Mapped[int] =  mapped_column(Integer(), nullable=False)
+    headline_font: Mapped[str] = mapped_column(String(), nullable=False) 
+
+

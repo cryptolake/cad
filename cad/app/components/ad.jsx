@@ -43,7 +43,7 @@ export async function AdList({ adList }) {
 
 export async function PromptList({ promptList }) {
     return (
-	<ul className="overflow-y-scroll h-1/6 p-4">
+	<ul className="overflow-y-scroll h-screen p-4">
 	    {promptList.reverse().map(prompt => (
 		<li key={prompt.id} className="h-35 m-5 p-3 rounded shadow-lg overflow-hidden">
 		    <a href={`/generations/${prompt.id}`}>

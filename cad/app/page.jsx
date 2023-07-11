@@ -2,12 +2,14 @@
 
 import React from 'react';
 import './globals.css'
-import { AdList, PromptList, Form } from './components/ad.jsx'
+import { AdList, PromptList, Form, Prompt } from './components/ad.jsx'
+import { Title } from './components/title.jsx'
 import { useState, Suspense } from 'react';
 
 function AdGenerator() {
-    const [isDataFetching, setDataFetching] = useState(false);
+    const [isDataFetched, setDataFetched] = useState(false);
     const [adList, setAdList] = useState(null);
+    const [prompt, setPrompt] = useState(null);
 
     async function generateAds(event) {
 
@@ -34,14 +36,16 @@ function AdGenerator() {
 	if (!res.ok) {
 	    throw new Error('Failed to create ad')
 	}
-	setDataFetching(true);
+	setDataFetched(true);
+	setPrompt(prompt);
 	setAdList(await res.json());
     }
 
-    if (isDataFetching) {
+    if (isDataFetched) {
 	return (
 	    <Suspense fallback={<div>Loading...</div>}>
-		<AdList adList={adList} />
+		<Prompt prompt={prompt} />
+		<AdList className='h-1/2' adList={adList} />
 	    </Suspense>
 	);
     };
@@ -74,12 +78,13 @@ export default async function Page() {
 
     return (
 	<div className="flex flex-row">
-	    <div className="basis-1/6">
+	    <div className="basis-1/5">
 		<Suspense fallback={<div>Loading...</div>}>
 		    <PromptList promptList={promptsData} />
 		</Suspense>
 	    </div>
 	    <div className="basis-4/5 p-1 flex flex-col items-center">
+		<Title className="mb-10" title='Ad Generator' />
 		<Suspense fallback={<div>Loading...</div>}>
 		    <AdGenerator />
 		</Suspense>

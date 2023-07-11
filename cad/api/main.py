@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.orm import Session
+from fastapi.staticfiles import StaticFiles
+
 
 from . import gen_ai, schemas, crud
 from .db import models, database
@@ -8,6 +10,9 @@ from .db import models, database
 models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI()
+
+# static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Dependency
 def get_db():
