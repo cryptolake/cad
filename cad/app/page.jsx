@@ -9,6 +9,7 @@ import { useState, Suspense } from 'react';
 function AdGenerator() {
     const [isDataFetched, setDataFetched] = useState(false);
     const [adList, setAdList] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
     const [prompt, setPrompt] = useState(null);
 
     async function generateAds(event) {
@@ -25,7 +26,7 @@ function AdGenerator() {
 	    max_words: event.target.max_words.value
 	};
 
-	const res = await fetch("/api/ads", {
+	const req = fetch("/api/ads", {
 	    method: "POST",
 	    body: JSON.stringify(prompt),
 	    headers: {
@@ -33,10 +34,16 @@ function AdGenerator() {
 	    },
 	})
 
+	setIsLoading(true);
+	const res = await req;
+	
 	if (!res.ok) {
+	    setIsLoading(false);
 	    throw new Error('Failed to create ad')
 	}
+
 	setDataFetched(true);
+	setIsLoading(false);
 	setPrompt(prompt);
 	setAdList(await res.json());
     }
@@ -44,8 +51,10 @@ function AdGenerator() {
     if (isDataFetched) {
 	return (
 	    <Suspense fallback={<div>Loading...</div>}>
-		<Prompt prompt={prompt} />
-		<AdList className='h-1/2' adList={adList} />
+		<div className='h-screen'>
+		    <Prompt prompt={prompt} />
+		    <AdList className='h-screen' adList={adList} />
+		</div>
 	    </Suspense>
 	);
     };
@@ -53,7 +62,7 @@ function AdGenerator() {
     return (
 	<div className="flex flex-col items-center">
 	    <Suspense fallback={<div>Loading...</div>}>
-		<Form submitFun={generateAds}/>
+		<Form submitFun={generateAds} isLoading={isLoading} />
 	    </Suspense>
 	</div>
     );

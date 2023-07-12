@@ -2,13 +2,15 @@ from __future__ import annotations
 from typing import List
 import dataclasses
 
-from sqlalchemy import String, ForeignKey, Integer, Float
+from sqlalchemy import String, ForeignKey, Integer, Float, Table, Column
 from sqlalchemy.orm import Mapped, mapped_column, relationship, composite
 
 from .database import Base
 
 @dataclasses.dataclass
-class Loc:
+class Text:
+    font: str
+    size: int
     x: int
     y: int
 
@@ -39,6 +41,20 @@ class Ad(Base):
 
     prompt_id: Mapped[int] = mapped_column(ForeignKey("prompts.id"))
     prompt: Mapped["Prompt"] = relationship(back_populates="ads")
+    image: Mapped["AdImage"] = relationship(back_populates="ad")
+
+##
+# Ad Image Section
+##
+theme_image_assc = Table("theme_image_assc", Base.metadata,
+                         Column("theme_id", Integer, ForeignKey('themes.id')),
+                         Column("image_id", Integer, ForeignKey('images.id'))
+                         )
+
+adimage_image_assc = Table("adimage_image_assc", Base.metadata,
+                         Column("adimage_id", Integer, ForeignKey('adimages.id')),
+                         Column("image_id", Integer, ForeignKey('images.id'))
+                         )
 
 class Image(Base):
     __tablename__ = "images"
@@ -51,8 +67,23 @@ class Theme(Base):
     __tablename__ = "themes"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    headline_loc: Mapped[Loc] = composite(mapped_column("x"), mapped_column("y"))
-    headline_size: Mapped[int] =  mapped_column(Integer(), nullable=False)
-    headline_font: Mapped[str] = mapped_column(String(), nullable=False) 
+    headline: Mapped[Text] = composite(mapped_column("h_font"),
+                                       mapped_column("h_size"),
+                                       mapped_column("h_x"),
+                                       mapped_column("h_y"))
+    short_text: Mapped[Text] = composite(mapped_column("s_font"),
+                                       mapped_column("s_size"),
+                                       mapped_column("s_x"),
+                                       mapped_column("s_y"))
+    adimages: Mapped[List["AdImage"]] = relationship(back_populates="theme")
+    image: Mapped["Image"] = relationship(secondary=theme_image_assc)
 
+class AdImage(Base):
+    __tablename__ = "adimages"
 
+    id: Mapped[int] = mapped_column(primary_key=True)
+    image: Mapped["Image"] = relationship(secondary=adimage_image_assc)
+    theme_id: Mapped[int] = mapped_column(ForeignKey("themes.id"))
+    theme: Mapped["Theme"] = relationship(back_populates="adimages")
+    ad_id: Mapped[int] = mapped_column(ForeignKey("ads.id"))
+    ad: Mapped["Ad"] = relationship(back_populates="adimage")

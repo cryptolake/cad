@@ -57,30 +57,44 @@ export async function PromptList({ promptList }) {
 }
 
 
-export function Form({submitFun}) {
+export function Form({submitFun, isLoading}) {
+
+    let button = (  
+	<button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" type="submit">
+	    Generate
+	</button>
+    );
+
+    if (isLoading)
+	button = (
+	    <div>
+		Loading...
+	    </div>
+	);
 
     return (
 	<form className="w-full max-w-lg" onSubmit={submitFun}>
 	    <div className="flex flex-row -mx-3 mb-6">
-		<TextInput label="Brand Name" name="brand_name" placeholder=""/>
-		<TextInput label="Product Name" name="product_name" placeholder=""/>
+		<TextInput label="Brand Name" name="brand_name" placeholder="" required />
+		<TextInput label="Product Name" name="product_name" placeholder="" required />
 	    </div>
 
 	    <div className="flex flex-col  mb-6">
-		<TextArea label="Product Description" name="product_description" placeholder="" />
+		<TextArea label="Product Description" name="product_description" placeholder="" required />
 		<TextArea label="Parameters" name="parameters" placeholder="" />
 	    </div>
 
 	    <div className="flex flex-row -mx-3 mb-6">
-		<NumberInput label="Number of Generations" name="n" placeholder="" value='10' step='1' />
-		<NumberInput label="Temperature (model randomness)" name="temp" placeholder="" value='1.0' step='0.1'/>
+		<NumberInput label="Number of Generations" name="n" placeholder="" value='10' step='1' required />
+		<NumberInput label="Temperature (model randomness)" name="temp" placeholder="" value='1.0' step='0.1' required />
 	    </div>
 	    <div className="flex items-center m-8">
-		<NumberInput label="Max tokens" name="max_words" placeholder="" value='40' step='1'/>
+		<NumberInput label="Max tokens" name="max_words" placeholder="" value='40' step='1' required />
 	    </div>
 
+	    
 	 <div className="flex flex-col items-center m-8">
-	    <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" type="submit">Generate</button>
+	     { button }
 	 </div>
 	</form>
     );

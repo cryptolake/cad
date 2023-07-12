@@ -12,7 +12,7 @@ models.Base.metadata.create_all(bind=database.engine)
 app = FastAPI()
 
 # static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="public"), name="static")
 
 # Dependency
 def get_db():
