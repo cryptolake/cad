@@ -31,7 +31,7 @@ export async function AdList({ adList }) {
 	{adList.map(ad => (
 	<li key={ad.id} className="m-6 p-3 rounded shadow-lg ml-3 overflow-hidden">
 	    <ListEntry title="Headline" para={ad.headline} />
-	    <ListEntry title="Short Text" para={ad.short_text} />
+	    <ListEntry title="Short Text" para={ad.short} />
 	    <ListEntry title="Text" para={ad.text} />
 	</li>
 	))}

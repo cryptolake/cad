@@ -11,7 +11,7 @@ def create_dict(output: str) -> dict | None:
         return None
     ad_dict = {
         "headline": clean(out_clean[0]),
-        "short_text": clean(out_clean[1]),
+        "short": clean(out_clean[1]),
         "text": clean(out_clean[2])
     }
 
