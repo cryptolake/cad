@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import List
 import dataclasses
 
-from sqlalchemy import String, ForeignKey, Integer, Float, Table, Column
+from sqlalchemy import String, ForeignKey, Integer, Float
 from sqlalchemy.orm import Mapped, mapped_column, relationship, composite
 
 from .database import Base

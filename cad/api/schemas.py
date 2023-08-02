@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 from pydantic import BaseModel
-import dataclasses
 
 class AdBase(BaseModel):
     text: str
@@ -66,4 +65,3 @@ class Image(ImageBase):
 
     class Config:
         orm_mode = True
-

@@ -6,8 +6,8 @@ from os import stat
 def create_text_image(image, text, font, size, color, x, y):
     font = ImageFont.truetype(font, size, layout_engine=ImageFont.Layout.RAQM)
     image_draw = ImageDraw.Draw(image)
-    image_draw.multiline_text((x, y), text, fill=color,
-                              anchor='ls', font=font, embedded_color=True)
+    image_draw.text((x, y), text, fill=color,
+                              anchor='lt', font=font, embedded_color=True)
     return image
 
 def save_image(image_bytes):

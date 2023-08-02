@@ -13,6 +13,18 @@ export function ListEntry({ title, para })
     );
 }
 
+export function ListImage({ title, src })
+{
+    return (
+	<div className="flex flex-col">
+	    <h2 className="font-bold">{title}:</h2>
+	    <img src={src} className="overflow-scroll max-w-md max-h-md"/>
+	</div>
+
+    );
+
+}
+
 export async function Prompt({ prompt }) {
     return (
 	<div className="m-6 p-3 rounded shadow-lg overflow-hidden">
@@ -33,6 +45,7 @@ export async function AdList({ adList }) {
 	    <ListEntry title="Headline" para={ad.headline} />
 	    <ListEntry title="Short Text" para={ad.short} />
 	    <ListEntry title="Text" para={ad.text} />
+	    <ListImage title="Image" src={'/'+ad.image_loc} />
 	</li>
 	))}
     </ul>
@@ -68,7 +81,7 @@ export function Form({submitFun, isLoading}) {
     if (isLoading)
 	button = (
 	    <div>
-		Loading...
+		Generating...
 	    </div>
 	);
 
