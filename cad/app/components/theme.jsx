@@ -1,250 +1,169 @@
-import React, { useState, useRef, useEffect } from 'react';
-import ParamSetter from './paramsetter.jsx';
+'use client'
+
+import React, { useState, Suspense } from 'react';
+import { ListEntry, ListImage } from './list';
 import '../globals.css';
 
-export function ThemeCreator({ setTheme }) {
-    const [image, setImage] = useState(null);
-    const [isCreated, setIsCreated] = useState(false);
-    const [headlineParams, setHeadlineParams] = useState(
-        {
-            size: 50,
-            color: "#000000"
-        }
-    );
+function AdImages({ template, ads }) {
+    const [images, setImages] = useState([]);
 
-    const [ctcParams, setCtcParams] = useState(
-        {
-            size: 25,
-            color: "#000000"
-        }
-    );
+    async function createImages()
+    {
+        const images = []
 
-    const [changing, setChanging] = useState(null);
+        ads.forEach( async (ad) => {
+            const data = {
+                "template": template.uid,
+                modifications: [
+                    {
+                        "name": "headline",
+                        "text": ad.headline
+                    },
+                    {
+                        "name": "ctc",
+                        "text": ad.short
+                    },
+                ]
 
-    const parent = useRef();
-    const dragh = useRef();
-    const dragc = useRef();
+            }
+            const req = await fetch('https://sync.api.bannerbear.com/v2/images', {
+                method: 'POST',
+                body: JSON.stringify(data),
+                headers: {
+                    'Authorization': 'Bearer bb_pr_ef33c6f33918e2d14702e9b1ca77d3'
+                }
+            });
 
-    let selected = null;
+            if (!req.ok) {
 
-    const headLine = {
-        x_pos: 0,
-        y_pos: 0,
-    };
+                throw new Error(`Failed to create image: ${req.status} ${req.body}`);
+            } else {
 
-    const callAction = {
-        x_pos: 0,
-        y_pos: 0,
-    };
+                const image = await req.json();
 
-    const pointer = {
-        x: 0,
-        y: 0
-    }
+                images.push(image);
 
-    function _drag_init(elem, obj) {
+                const upAd = await fetch(`/api/images?uid=${image.uid}&ad_id=${ad.id}`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        location: image.image_url,
+                    }),
+                    headers: {
+                        "Content-Type": "application/json",
+                    }
+                });
 
+                if (!upAd.ok) {
 
-        selected = elem;
+                    throw new Error(`Failed to register image: ${upAd.status} ${upAd.body}`);
+                }
+            }
 
-        const selectedLocX = selected.offsetLeft;
-        const selectedLocY = selected.offsetTop;
-
-
-        obj.x_pos = (pointer.x - selectedLocX)
-        obj.y_pos = (pointer.y - selectedLocY)
-        return false;
-
-    }
-
-    function _move_elem(e) {
-
-        let obj = callAction;
-
-
-
-        if (e.target.id == 'hl')
-            obj = headLine;
-
-        pointer.x = e.pageX;
-        pointer.y = e.pageY;
-
-        if (selected !== null) {
-            selected.style.left = (pointer.x - obj.x_pos) + 'px';
-            selected.style.top = (pointer.y - obj.y_pos) + 'px';
-        }
-        return false;
-
-    }
-
-    function _destroy() {
-        selected = null;
-        return false;
-    }
-
-    async function handleUpload(e) {
-
-        const body = new FormData()
-        body.append("image", e.target.files[0]);
-        const res = await fetch("/api/upload_image", {
-
-            method: "POST",
-            body
         })
 
-        if (!res.ok) {
-            setImage(null);
-        }
-
-        else {
-            const imageRes = await res.json();
-            setImage(imageRes.location);
-        }
-
+        setImages(images);
     }
 
-    function handleCancel() {
-        setImage(null);
+    if (images.length != 0) {
+        return (
+            <div className="overflow-x-scroll w-100">
+                <Suspense fallback={<div>Loading...</div>}>
+                    <ul className="flex flex-row flex-wrap">
+                        {images.map(image => (
+                            <li className="m-6 p-3 rounded shadow-lg ml-3 overflow-hidden">
+                                <ListImage title="Ad Image" src={image.image_url} />
+                            </li>
+                        ))}
+                    </ul>
+                </Suspense>
+            </div>
+        );
+    } else {
+        return (
+            <div className="flex flex-col items-center m-5">
+                <Suspense fallback={<div>Loading...</div>}>
+                    <img src={template.preview_url} className="overflow-scroll max-w-sm max-h-sm" />
+                    <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded m-2" onClick={createImages}>
+                        Generate Images
+                    </button>
+                </Suspense>
+            </div>
+
+        );
+
     }
+}
 
-    async function handleThemeUpload() {
+export function ThemeSelector({ ads }) {
 
-        const parentLocX = parent.current.offsetLeft;
-        const parentLocY = parent.current.offsetTop;
+    const [templates, setTemplates] = useState(null);
+    const [template, setTemplate] = useState(null);
+    const [clicked, setClicked] = useState(false);
 
-        const headline = {
-            x: dragh.current.offsetLeft,
-            y: dragh.current.offsetTop,
-            font: "static/Emoji.ttf",
-            size: headlineParams.size,
-            color: headlineParams.color
-        }
-
-        const short = {
-            x: dragc.current.offsetLeft,
-            y: dragc.current.offsetTop,
-            font: "static/Emoji.ttf",
-            size: ctcParams.size,
-            color: ctcParams.color
-        }
-
-
-        headline.x -= parentLocX;
-        headline.y -= parentLocY;
-
-        short.x -= parentLocX;
-        short.y -= parentLocY;
-
-        const reqBody = {
-            headline: headline,
-            short: short,
-            image_loc: image
-        }
-
-        const req = fetch("/api/themes", {
-            method: "POST",
-            body: JSON.stringify(reqBody),
+    async function fetchTemplates() {
+        const req = await fetch('https://api.bannerbear.com/v2/templates', {
+            method: 'GET',
             headers: {
-                "Content-Type": "application/json",
-            },
-        })
+                'Authorization': 'Bearer bb_pr_ef33c6f33918e2d14702e9b1ca77d3'
+            }
+        });
 
-        const res = await req;
-        if (!res.ok) {
-            setImage(null);
-            throw new Error('Failed to create theme')
+        if (!req.ok) {
+
+            throw new Error(`Failed to fetch themes: ${req.status} ${req.body}`);
         }
-        setIsCreated(true);
-        setTheme(await res.json());
+
+        setTemplates(await req.json());
+    }
+
+    fetchTemplates();
+
+    if (clicked && template === null) {
+        return (
+            <div className="flex flex-col items-center rounded-md p-0 shadow-xl ml-20 h-1/2">
+                <ul className="flex flex-row p-6 divide-y divide-slate-200">
+                    {templates.map(template => (
+                        <li key={template.uid} className="m-6 p-3 rounded shadow-lg ml-3 overflow-hidden">
+                            <ListEntry title="Theme Name" para={template.name} />
+                            <ListImage title="Theme Preview" src={template.preview_url} />
+                            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded m-2" onClick={() => { setTemplate(template); }}>
+                                select
+                            </button>
+
+                        </li>
+                    ))}
+                </ul>
+                <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded m-2" onClick={() => { setClicked(false); }}>
+                    Close
+                </button>
+            </div>
+        );
 
     }
 
-    useEffect(() => {
-        if (image !== null && !isCreated) {
-            if (dragc.current) {
-                dragc.current.style.fontSize = ctcParams.size + 'px';
-                dragc.current.style.color = ctcParams.color;
+    else if (clicked && template !== null) {
+        return (
+            <div className="flex flex-col items-center rounded-md p-0 shadow-xl ml-20">
+                <Suspense fallback={<div>Loading...</div>}>
+                    <AdImages template={template} ads={ads} />
+                </Suspense>
+                <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded m-2" onClick={() => { setClicked(false); setTemplate(null); }}>
+                    Close
+                </button>
+            </div>
 
-                dragc.current.onclick = () => {
-                    setChanging('ctc');
-                    return false;
-                }
-                dragc.current.onmousedown = () => {
-                    _drag_init(dragc.current, callAction);
-                    return false;
-                }
-                dragc.current.onmouseup = _destroy
-            }
-
-            if (dragh.current) {
-                dragh.current.style.fontSize = headlineParams.size + 'px';
-                dragh.current.style.color = headlineParams.color;
-
-                dragh.current.onclick = () => {
-                    setChanging('head');
-                    return false;
-                }
-                dragh.current.onmousedown = () => {
-                    _drag_init(dragh.current, headLine);
-                    return false;
-                }
-                dragh.current.onmouseup = _destroy
-            }
-
-            if (parent.current) {
-                parent.current.onmousemove = _move_elem
-                parent.current.onmouseup = _destroy
-            }
-        }
-
-    });
-
-
-    return (
-        <div className="flex flex-col items-center rounded-md p-0 shadow-xl ml-20">
-            {image == null &&
-
-                <>
-                    <h2 className="mb-5">Upload Ad Image for Theme:</h2>
-                    <input type="file" onChange={handleUpload} />
-                </>
-
-            }
-            {image != null &&
-                <div>
-                    <div className="absolute cursor-move flex flex-col items-center shadow-xl" ref={dragh}>
-                        <p className="m-3">
-                            Headline Location
-                        </p>
-                    </div>
-                    <div className="absolute cursor-move flex flex-col items-center shadow-xl" ref={dragc}>
-                        <p className="m-3">
-                            Call To action Location
-                        </p>
-                    </div>
-                    <img ref={parent} src={image} />
-                </div>
-            }
-            {image != null && !isCreated &&
-                <div className="flex">
-                    <button className="flex flex-col items-center border-2 rounded-md border-sky-400 p-2 m-2 pl-4 pr-4 shadow-xl" onClick={handleCancel}>
-                        <p>Cancel</p>
-                    </button>
-                    <button className="flex flex-col items-center border-2 rounded-md border-sky-400 p-2 m-2 pl-4 pr-4 shadow-xl" onClick={handleThemeUpload}>
-                        <p>Upload Theme</p>
+        );
+    } else {
+        return (
+            <>
+                <div className="m-5 flex flex-col items-center">
+                    <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onClick={() => { setClicked(true); }}>
+                        Choose a theme
                     </button>
                 </div>
-            }
+            </>
 
-            {image != null && !isCreated && changing === "head" &&
-             <ParamSetter params={headlineParams} setParams={setHeadlineParams} setChanging={setChanging}/>
-            }
+        );
 
-            {image != null && !isCreated && changing === "ctc" &&
-             <ParamSetter params={ctcParams} setParams={setCtcParams} setChanging={setChanging}/>
-            }
-            
-        </div>
-    );
-
+    }
 }

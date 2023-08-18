@@ -2,17 +2,17 @@
 
 import React from 'react';
 import './globals.css'
-import { AdList, PromptList, Form, Prompt } from './components/ad.jsx'
+import { PromptList, Form } from './components/ad.jsx'
 import { Title } from './components/title.jsx'
-import { ThemeCreator } from './components/theme.jsx'
 import { useState, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 
 function AdGenerator() {
     const [isDataFetched, setDataFetched] = useState(false);
     const [adList, setAdList] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [prompt, setPrompt] = useState(null);
-    const [theme, setTheme] = useState(null);
+
+    const router = useRouter()
 
     async function generateAds(event) {
 
@@ -28,7 +28,7 @@ function AdGenerator() {
             max_words: event.target.max_words.value
         };
 
-        const req = fetch(`/api/generate_ads?theme_id=${theme.id}`, {
+        const req = fetch(`/api/generate_ads`, {
             method: "POST",
             body: JSON.stringify(prompt),
             headers: {
@@ -41,34 +41,25 @@ function AdGenerator() {
 
         if (!res.ok) {
             setIsLoading(false);
-            throw new Error('Failed to create ad')
+            throw new Error(`Failed to create ad ${res.status} ${res.body}`)
         }
 
-        setDataFetched(true);
         setIsLoading(false);
-        setPrompt(prompt);
         setAdList(await res.json());
+        setDataFetched(true);
     }
 
     if (isDataFetched) {
-        return (
-            <Suspense fallback={<div>Loading...</div>}>
-                <div className='h-screen'>
-                    <Prompt prompt={prompt} />
-                    <AdList adList={adList} />
-                </div>
-            </Suspense>
-        );
+        router.push(`/generations/${adList.id}`);
     };
 
     return (
         <div className="flex flex-col items-center">
-            <Suspense fallback={<div>Loading...</div>}>
-                <div className="flex flex-row items-center">
+            <div className="flex flex-row items-center">
+                <Suspense fallback={<div>Loading...</div>}>
                     <Form submitFun={generateAds} isLoading={isLoading} />
-                    <ThemeCreator setTheme={setTheme} />
-                </div>
-            </Suspense>
+                </Suspense>
+            </div>
         </div>
     );
 
@@ -80,7 +71,7 @@ async function getPrompts() {
     });
 
     if (!res.ok) {
-        throw new Error('Failed to fetch prompts');
+        throw new Error(`Failed to fetch prompts ${res.status} ${res.body}`);
 
     }
 
