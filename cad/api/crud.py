@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from itertools import chain
 
+from fastapi import status, HTTPException
 from . import schemas
 from .db import models
 
@@ -56,16 +56,47 @@ def create_image(db: Session, image: schemas.ImageBase,
     db.refresh(db_image)
     return db_image
 
+def get_user_id(db: Session, user_id: int):
+    return db.query(models.User).filter(models.User.id == user_id).first()
+
 def get_user(db: Session, username: str | None):
     if username:
         return db.query(models.User).filter(models.User.username == username).first()
 
-def get_user_ads(db: Session, user_id: int):
-    user = db.query(models.User).filter(models.User.id == user_id).first()
+def get_user_ads(db: Session, user_id: int, skip: int, limit: int):
+    user = get_user_id(db=db, user_id=user_id)
     if not user:
         return None
-    ads = list(chain.from_iterable(map(lambda prompt: prompt.ads, user.prompts)))
-    return ads
+    return db.query(models.Ad).filter(models.Ad.prompt.in_(user.prompts)).offset(skip).limit(limit).all()
 
-def is_ad_user(db: Session, user_id: int, ad_id: int):
-    pass
+def get_user_ad(db: Session, user_id: int, ad_id: int):
+    user = get_user_id(db=db, user_id=user_id)
+    if not user:
+        return None
+    ad = get_ad(db=db, ad_id=ad_id)
+    if not ad:
+        return None
+    if ad.prompt in user.prompts:
+        return ad
+
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Ad does not belong to user"
+    )
+
+def get_user_prompts(db: Session, user_id: int, skip: int = 0, limit: int = 0):
+    return db.query(models.User.prompts).filter(models.User.id == user_id)\
+                                .offset(skip).limit(limit).all()
+
+def get_user_prompt(db: Session, user_id: int, prompt_id: int):
+    prompt = db.query(models.Prompt).filter(models.Prompt.id == prompt_id).first()
+    if not prompt:
+        return None
+
+    if prompt.user_id == user_id:
+        return prompt
+
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Prompt does not belong to the user"
+    )

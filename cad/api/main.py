@@ -2,7 +2,7 @@
 
 from typing import Annotated
 
-from fastapi import FastAPI, HTTPException, Depends, UploadFile, status
+from fastapi import FastAPI, HTTPException, Depends, status
 
 from sqlalchemy.orm import Session
 from fastapi.staticfiles import StaticFiles
@@ -30,16 +30,12 @@ def get_db():
     finally:
         db.close()
 
-
 @app.post("/api/generate_ads", response_model=schemas.Prompt)
 async def generate_ads(prompt: schemas.PromptBase,
                        token: Annotated[str, Depends(oauth2_scheme)],
                        db: Session = Depends(get_db)):
 
-    try:
-        user = await auth.get_current_user(db=db, token=token)
-    except Exception as e:
-        raise e
+    user = await auth.get_current_user(db=db, token=token)
 
     db_prompt = crud.create_prompt(db=db, prompt=prompt, user_id=user.id)
 
@@ -60,53 +56,68 @@ async def get_ads(
         limit: int = 100,
         db: Session = Depends(get_db)):
 
-    ads = crud.get_ads(db=db, skip=skip, limit=limit)
+    user = await auth.get_current_user(db=db, token=token)
+
+    ads = crud.get_user_ads(db=db, user_id=user.id, skip=skip,
+                            limit=limit)
     return ads
 
 @app.get("/api/ads/{id}", response_model=schemas.Ad)
 async def get_ad(id: int,
                  token: Annotated[str, Depends(oauth2_scheme)],
                  db: Session = Depends(get_db)):
-    ad = crud.get_ad(db=db, ad_id=id)
+    user = await auth.get_current_user(db=db, token=token)
+
+    ad = crud.get_user_ad(db=db, ad_id=id, user_id=user.id)
     if ad is None:
         raise HTTPException(status_code=404,
                             detail="Ad not found")
     return ad
 
-@app.patch("/api/ads/{id}", response_model=schemas.Ad)
-async def update_ads(data: schemas.Ad,
-                     id: int,
-                     token: Annotated[str, Depends(oauth2_scheme)],
-                     db: Session = Depends(get_db)):
-    ad = crud.get_ad(db=db, ad_id=id)
-    if ad is None:
-        raise HTTPException(status_code=404,
-                            detail="Ad not found")
-    ad_model = schemas.Ad(**ad.__dict__)
-    update_data = data.dict(exclude_unset=True)
-    updated_ad = ad_model.copy(update=update_data)
+# @app.patch("/api/ads/{id}", response_model=schemas.Ad)
+# async def update_ads(data: schemas.Ad,
+#                      id: int,
+#                      token: Annotated[str, Depends(oauth2_scheme)],
+#                      db: Session = Depends(get_db)):
+#     ad = crud.get_ad(db=db, ad_id=id)
+#     if ad is None:
+#         raise HTTPException(status_code=404,
+#                             detail="Ad not found")
+#     ad_model = schemas.Ad(**ad.__dict__)
+#     update_data = data.dict(exclude_unset=True)
+#     updated_ad = ad_model.copy(update=update_data)
     
-    ad = crud.update_ad(db=db, ad=updated_ad, id=id)
+#     ad = crud.update_ad(db=db, ad=updated_ad, id=id)
 
-    return ad
+#     return ad
 
 @app.post("/api/prompts", response_model=list[schemas.Prompt])
 async def create_prompt(prompt: schemas.PromptBase,
                         token: Annotated[str, Depends(oauth2_scheme)],
                         db: Session = Depends(get_db)):
-    try:
-        user = await auth.get_current_user(db=db, token=token)
-    except Exception as e:
-        raise e
+    user = await auth.get_current_user(db=db, token=token)
     db_prompt = crud.create_prompt(db=db, prompt=prompt, user_id=user.id)
     return db_prompt
+
+@app.get("/api/prompts", response_model=list[schemas.Prompt])
+async def get_prompts(
+        token: Annotated[str, Depends(oauth2_scheme)],
+        skip: int = 0, limit: int = 100,
+        db: Session = Depends(get_db)
+):
+    user = await auth.get_current_user(db=db, token=token)
+    prompts = crud.get_user_prompts(db=db, skip=skip, limit=limit,
+                                    user_id=user.id)
+    return prompts
 
 
 @app.get("/api/prompts/{prompt_id}", response_model=schemas.Prompt)
 async def get_prompt(prompt_id: int,
                      token: Annotated[str, Depends(oauth2_scheme)],
                      db: Session = Depends(get_db)):
-    prompt = crud.get_prompt(db=db, prompt_id=prompt_id)
+
+    user = await auth.get_current_user(db=db, token=token)
+    prompt = crud.get_user_prompt(db=db, prompt_id=prompt_id, user_id=user.id)
     if prompt is None:
         raise HTTPException(status_code=404,
                             detail="Prompt not found")
@@ -140,6 +151,8 @@ async def create_image(image: schemas.ImageBase,
                        token: Annotated[str, Depends(oauth2_scheme)],
                        ad_id: int,
                        db: Session = Depends(get_db)):
+    await auth.get_current_user(db=db, token=token)
+
     db_image = crud.create_image(db=db, image=image,
                                  uid=uid, ad_id=ad_id)
     if db_image is None:
