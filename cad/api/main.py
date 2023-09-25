@@ -30,6 +30,18 @@ def get_db():
     finally:
         db.close()
 
+#password = passwordcad
+def create_admin_user(db: Session):
+    user = crud.get_user(db=db, username="Admin")
+    if not user:
+        user = models.User(username="Admin", password="$2b$12$h1WVyj15QFkslyiiNhJm9e7f.DJTz33ZtYzYux5yQF2jgGkO8U./S")
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        user = crud.get_user(db=db, username="Admin")
+
+create_admin_user(next(get_db()))
+
 @app.post("/api/generate_ads", response_model=schemas.Prompt)
 async def generate_ads(prompt: schemas.PromptBase,
                        token: Annotated[str, Depends(oauth2_scheme)],

@@ -50,7 +50,6 @@ class Image(Base):
     ad_id: Mapped[int] = mapped_column(ForeignKey("ads.id"))
     ad: Mapped["Ad"] = relationship(back_populates="images")
 
-
 class User(Base):
     __tablename__ = "users"
 
@@ -58,6 +57,6 @@ class User(Base):
 
     username: Mapped[str]
     password: Mapped[str]
-    disabled: Mapped[bool] = mapped_column(Boolean(), nullable=True) 
+    disabled: Mapped[bool] = mapped_column(Boolean(), default=False) 
 
     prompts: Mapped[List["Prompt"]] = relationship(back_populates="user")
